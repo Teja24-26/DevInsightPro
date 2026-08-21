@@ -25,6 +25,10 @@ def get_effective_ai_config():
             base_url = "https://api.groq.com/openai/v1"
         if not model or model == "gpt-4o-mini":
             model = "llama-3.3-70b-versatile"
+    elif api_key.startswith("sk-") and not base_url:
+        # Standard OpenAI key - ensure an OpenAI model is used
+        if not model or "llama" in model.lower() or "mixtral" in model.lower():
+            model = "gpt-4o-mini"
 
     if not model:
         model = "gpt-4o-mini"

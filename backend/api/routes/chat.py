@@ -104,13 +104,10 @@ async def repository_chat_stream(
             }) + "\n"
 
         except Exception as error:
+            error_message = getattr(error, "detail", None) or getattr(error, "message", None) or str(error)
             yield json.dumps({
                 "type": "error",
-                "message": (
-                    "Unable to stream a response from Ollama. "
-                    "Confirm that Ollama is running and the "
-                    "configured model is installed."
-                ),
+                "message": f"AI Streaming error: {error_message}",
                 "detail": str(error)
             }) + "\n"
 
