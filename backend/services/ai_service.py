@@ -25,6 +25,12 @@ def get_effective_ai_config():
             base_url = "https://api.groq.com/openai/v1"
         if not model or model == "gpt-4o-mini":
             model = "llama-3.3-70b-versatile"
+    # Automatically configure Hugging Face Serverless tokens (hf_...)
+    elif api_key.startswith("hf_"):
+        if not base_url:
+            base_url = "https://router.huggingface.co/v1"
+        if not model or model == "gpt-4o-mini":
+            model = "meta-llama/Llama-3.2-3B-Instruct"
     elif api_key.startswith("sk-") and not base_url:
         # Standard OpenAI key - ensure an OpenAI model is used
         if not model or "llama" in model.lower() or "mixtral" in model.lower():
