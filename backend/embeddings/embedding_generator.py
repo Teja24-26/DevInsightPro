@@ -1,5 +1,6 @@
 from threading import Lock
 import os
+import gc
 
 from core.logger import get_logger
 
@@ -23,7 +24,8 @@ class EmbeddingGenerator:
 
                     logger.info("Loading embedding model.")
                     cls.model = SentenceTransformer(
-                        "all-MiniLM-L6-v2"
+                        "all-MiniLM-L6-v2",
+                        device="cpu"
                     )
                     logger.info("Embedding model loaded.")
 
@@ -31,18 +33,40 @@ class EmbeddingGenerator:
 
     @staticmethod
     def generate_embedding(text: str):
-
         model = EmbeddingGenerator.get_model()
-
-        embedding = model.encode(text)
-
+        import torch
+        with torch.inference_mode():
+            embedding = model.encode(
+                text,
+                show_progress_bar=False,
+                normalize_embeddings=True
+            )
         return embedding.tolist()
 
     @staticmethod
-    def generate_query_embedding(query: str):
-
+    def generate_embeddings(texts: list[str]):
+        if not texts:
+            return []
         model = EmbeddingGenerator.get_model()
+        import torch
+        with torch.inference_mode():
+            embeddings = model.encode(
+                texts,
+                batch_size=16,
+                show_progress_bar=False,
+                normalize_embeddings=True
+            )
+        gc.collect()
+        return [emb.tolist() for emb in embeddings]
 
-        embedding = model.encode(query)
-
+    @staticmethod
+    def generate_query_embedding(query: str):
+        model = EmbeddingGenerator.get_model()
+        import torch
+        with torch.inference_mode():
+            embedding = model.encode(
+                query,
+                show_progress_bar=False,
+                normalize_embeddings=True
+            )
         return embedding.tolist()

@@ -71,19 +71,13 @@ async def ingest_repository(payload: RepositoryRequest):
 
             all_chunks.extend(chunks)
 
-            for chunk in chunks:
-
-                embedding = (
-                    EmbeddingGenerator.generate_embedding(
-                        chunk["content"]
-                    )
-                )
-
+        if all_chunks:
+            all_chunk_contents = [chunk["content"] for chunk in all_chunks]
+            all_embeddings = EmbeddingGenerator.generate_embeddings(
+                all_chunk_contents
+            )
+            for chunk, embedding in zip(all_chunks, all_embeddings):
                 chunk["embedding"] = embedding
-
-                all_embeddings.append(
-                    embedding
-                )
 
         VectorStore.replace_repository_embeddings(
             cloned_repository["repo_id"],
