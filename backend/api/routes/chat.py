@@ -104,11 +104,12 @@ async def repository_chat_stream(
             }) + "\n"
 
         except Exception as error:
-            error_message = getattr(error, "detail", None) or getattr(error, "message", None) or str(error)
+            detail = getattr(error, "detail", None)
+            msg = str(detail) if detail else str(error)
             yield json.dumps({
                 "type": "error",
-                "message": f"AI Streaming error: {error_message}",
-                "detail": str(error)
+                "message": msg,
+                "detail": msg
             }) + "\n"
 
     return StreamingResponse(
