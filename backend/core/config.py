@@ -25,6 +25,7 @@ class Settings:
     ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
     ollama_host = os.getenv("OLLAMA_HOST", "")
     openai_api_key = os.getenv("OPENAI_API_KEY", "")
+    openai_base_url = os.getenv("OPENAI_BASE_URL", "")
     openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     database_url = os.getenv("DATABASE_URL", "")
     vector_store_path = Path(

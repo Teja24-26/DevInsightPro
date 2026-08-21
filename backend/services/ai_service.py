@@ -19,9 +19,10 @@ ollama_client = ollama.Client(
 
 openai_client = None
 if settings.openai_api_key:
-    openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key
-    )
+    client_kwargs = {"api_key": settings.openai_api_key}
+    if getattr(settings, "openai_base_url", None) and settings.openai_base_url.strip():
+        client_kwargs["base_url"] = settings.openai_base_url.strip()
+    openai_client = openai.OpenAI(**client_kwargs)
 
 
 
