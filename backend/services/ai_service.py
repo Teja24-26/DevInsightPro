@@ -14,6 +14,23 @@ from embeddings.vector_store import (
 
 logger = get_logger("services.ai")
 
+def get_effective_ai_config():
+    api_key = settings.openai_api_key.strip() if settings.openai_api_key else ""
+    base_url = settings.openai_base_url.strip() if getattr(settings, "openai_base_url", None) else ""
+    model = settings.openai_model.strip() if getattr(settings, "openai_model", None) else ""
+
+    # Automatically configure Groq API keys (gsk_...)
+    if api_key.startswith("gsk_"):
+        if not base_url:
+            base_url = "https://api.groq.com/openai/v1"
+        if not model or model == "gpt-4o-mini":
+            model = "llama-3.3-70b-versatile"
+
+    if not model:
+        model = "gpt-4o-mini"
+
+    return api_key, base_url, model
+
 ollama_client = None
 if settings.ollama_host:
     ollama_client = ollama.Client(
@@ -22,9 +39,10 @@ if settings.ollama_host:
 
 openai_client = None
 if settings.openai_api_key:
-    client_kwargs = {"api_key": settings.openai_api_key}
-    if getattr(settings, "openai_base_url", None) and settings.openai_base_url.strip():
-        client_kwargs["base_url"] = settings.openai_base_url.strip()
+    _api_key, _base_url, _model = get_effective_ai_config()
+    client_kwargs = {"api_key": _api_key}
+    if _base_url:
+        client_kwargs["base_url"] = _base_url
     openai_client = openai.OpenAI(**client_kwargs)
 
 
@@ -110,9 +128,10 @@ User Question:
         prompt: str
     ):
         if openai_client:
+            _key, _base, effective_model = get_effective_ai_config()
             try:
                 response = openai_client.chat.completions.create(
-                    model=settings.openai_model,
+                    model=effective_model,
                     messages=[
                         {
                             "role": "user",
@@ -123,13 +142,13 @@ User Question:
                 return response.choices[0].message.content
             except Exception as error:
                 logger.error(
-                    "OpenAI response failed: %s",
+                    "AI response failed: %s",
                     error,
                     exc_info=True
                 )
                 raise AppError(
                     "AI response generation failed.",
-                    "Confirm OpenAI API key and model configuration are valid.",
+                    str(error),
                     503
                 ) from error
 
@@ -169,9 +188,10 @@ User Question:
         prompt: str
     ):
         if openai_client:
+            _key, _base, effective_model = get_effective_ai_config()
             try:
                 response = openai_client.chat.completions.create(
-                    model=settings.openai_model,
+                    model=effective_model,
                     messages=[
                         {
                             "role": "user",
@@ -182,13 +202,13 @@ User Question:
                 )
             except Exception as error:
                 logger.error(
-                    "OpenAI streaming failed: %s",
+                    "AI streaming failed: %s",
                     error,
                     exc_info=True
                 )
                 raise AppError(
                     "AI streaming failed.",
-                    "Confirm OpenAI API key and model configuration are valid.",
+                    str(error),
                     503
                 ) from error
 
@@ -200,13 +220,13 @@ User Question:
                 return
             except Exception as error:
                 logger.error(
-                    "OpenAI stream iteration failed: %s",
+                    "AI stream iteration failed: %s",
                     error,
                     exc_info=True
                 )
                 raise AppError(
                     "AI streaming failed.",
-                    "Confirm OpenAI API key and model configuration are valid.",
+                    str(error),
                     503
                 ) from error
 
