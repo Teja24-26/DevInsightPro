@@ -1,0 +1,48 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Runtime repository clones and vector artifacts
+backend/temp_repositories/
+backend/vector_store/
+backend/.pytest_cache/
+
+# Frontend dependencies and generated output
+frontend/node_modules/
+frontend/.next/
+frontend/generated/prisma/
+
+# Logs and local OS/editor files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+Hello-World/
+
+# PostgreSQL binaries
+pgsql/
+postgresql_binaries/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
+# Backend
+venv/
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log

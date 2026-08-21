@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: devinsight-ai-pro-api
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: OLLAMA_MODEL
+        value: llama3.2:1b
+      - key: OLLAMA_HOST
+        sync: false
+      - key: VECTOR_STORE_PATH
+        value: /opt/render/project/src/vector_store
+      - key: TEMP_REPOSITORIES_DIR
+        value: /tmp/devinsight-repositories
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: "120"
+      - key: RATE_LIMIT_REQUESTS
+        value: "120"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"

@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RepositoryStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model User {
+  id             String        @id @default(uuid()) @db.Uuid
+  email          String        @unique
+  name           String?
+  passwordHash   String?
+  externalAuthId String?       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  repositories   Repository[]
+  chatSessions   ChatSession[]
+}
+
+model Repository {
+  id                 String              @id @default(uuid()) @db.Uuid
+  userId             String?             @db.Uuid
+  vectorRepositoryId String              @unique
+  name               String
+  url                String
+  status             RepositoryStatus    @default(PROCESSING)
+  filesProcessed     Int                 @default(0)
+  totalChunks        Int                 @default(0)
+  ingestedAt         DateTime            @default(now())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  chatSessions       ChatSession[]
+  embeddingMetadata  EmbeddingMetadata[]
+
+  @@index([userId, ingestedAt])
+  @@index([ingestedAt])
+}
+
+model ChatSession {
+  id           String        @id @default(uuid()) @db.Uuid
+  repositoryId String        @db.Uuid
+  userId       String?       @db.Uuid
+  title        String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  repository   Repository    @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages     ChatMessage[]
+
+  @@index([repositoryId, updatedAt])
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid()) @db.Uuid
+  sessionId String      @db.Uuid
+  role      ChatRole
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model EmbeddingMetadata {
+  id                 String     @id @default(uuid()) @db.Uuid
+  repositoryId       String     @db.Uuid
+  vectorRepositoryId String
+  sourceFile         String
+  chunkIndex         Int
+  contentLength      Int
+  contentPreview     String?    @db.VarChar(320)
+  createdAt          DateTime   @default(now())
+  repository         Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([vectorRepositoryId, sourceFile, chunkIndex])
+  @@index([repositoryId, sourceFile])
+}
