@@ -13,9 +13,12 @@ from embeddings.vector_store import (
 )
 
 logger = get_logger("services.ai")
-ollama_client = ollama.Client(
-    host=settings.ollama_host
-)
+
+ollama_client = None
+if settings.ollama_host:
+    ollama_client = ollama.Client(
+        host=settings.ollama_host
+    )
 
 openai_client = None
 if settings.openai_api_key:
@@ -130,6 +133,13 @@ User Question:
                     503
                 ) from error
 
+        if not ollama_client:
+            raise AppError(
+                "No AI service configured.",
+                "Please configure OPENAI_API_KEY (or Groq key) or OLLAMA_HOST.",
+                503
+            )
+
         try:
             response = ollama_client.chat(
                 model=settings.ollama_model,
@@ -199,6 +209,13 @@ User Question:
                     "Confirm OpenAI API key and model configuration are valid.",
                     503
                 ) from error
+
+        if not ollama_client:
+            raise AppError(
+                "No AI service configured.",
+                "Please configure OPENAI_API_KEY (or Groq key) or OLLAMA_HOST.",
+                503
+            )
 
         try:
             response = ollama_client.chat(

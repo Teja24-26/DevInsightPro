@@ -1,6 +1,5 @@
 from threading import Lock
-
-from sentence_transformers import SentenceTransformer
+import os
 
 from core.logger import get_logger
 
@@ -18,6 +17,10 @@ class EmbeddingGenerator:
         if cls.model is None:
             with cls.lock:
                 if cls.model is None:
+                    import torch
+                    torch.set_num_threads(1)
+                    from sentence_transformers import SentenceTransformer
+
                     logger.info("Loading embedding model.")
                     cls.model = SentenceTransformer(
                         "all-MiniLM-L6-v2"
